@@ -55,6 +55,16 @@ class PlayerInstance {
             // 'dblclick'
         })
 
+        this.nextBtn_ = new PlayerBtn('.player-ui__btn--next', {
+            'click': this.nextSongHandler.bind(this),
+            // 'dblclick'
+        })
+
+        this.prevBtn_ = new PlayerBtn('.player-ui__btn--prev', {
+            'click': this.prevSongHandler.bind(this),
+            // 'dblclick'
+        })
+
         this.songList = new Music().getSongList() // 歌曲信息
 
         // 页面中任何的显示不同都应该由数据来控制 MVC
@@ -80,6 +90,17 @@ class PlayerInstance {
         } else {
             this.el.pause()
         }
+    }
+
+    nextSongHandler () {//处理歌曲的切换(下一首)
+        this.songIndex++;
+        this.renderSongHandler();
+        this.el.play();
+    }
+    prevSongHandler () {//处理歌曲的切换(上一首)
+        this.songIndex++;
+        this.renderSongHandler();
+        this.el.play();
     }
 
     bindEvents () { // 绑定事件的方法
