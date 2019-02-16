@@ -157,6 +157,13 @@ class PlayerInstance {
         handler.call(this.el)
         this.renderPlayBtnWhenChange(playState)
     }
+    mutedAndOpenHandler (){// 处理静音和外音
+        let mutedState = this.el.muted
+        console.log(mutedState);
+        this.el.muted = mutedState ? false : true // 执行的操作
+        this.renderMutedBtnWhenChange(mutedState)
+    }
+    
     renderPlayBtnWhenChange (playState) { // 根据播放状态re-render disc
         // icon-play icon-pause
         if ( !playState ) {
@@ -165,6 +172,15 @@ class PlayerInstance {
             this.playBtn.$el.removeClass('icon-play').addClass('icon-pause')
         }
         this.oDisc.toggleClass('play')  
+    }
+
+    renderMutedBtnWhenChange(mutedState){//根据静音状态渲染静音按钮
+        if ( !mutedState ) {
+            this.mutedBtn.$el.removeClass('icon-volume').addClass('icon-muted')
+        } else {
+            this.mutedBtn.$el.removeClass('icon-muted').addClass('icon-volume')
+        }
+        // this.oDisc.toggleClass('play')  
     }
 
     changeIndexDependLoop (style) { // 根据循环模式切换索引
@@ -184,14 +200,18 @@ class PlayerInstance {
     //  style 上一曲还是下一曲 true 下一曲 false 上一曲
     //  index 切换的指定的歌曲   
     changeSongHandler (param) { 
-        // 0. 存储换歌前的播放状态 1. 更改歌曲的索引 2. 重新渲染歌曲 3. 根据换歌前是否播放控制当前是否播放
+        // 0. 存储换歌前的播放状态 1. 更改歌曲的索引 2. 重新渲染歌曲 
+        // 3. 根据换歌前是否播放控制当前是否播放
         let isPause = this.el.paused
+        let isMuted= this.el.muted;
+        console.log(isPause,isMuted);
         if ( typeof param === 'number' ) {
             this.songIndex = param
         } else {
             this.changeIndexDependLoop(param)
         }
         this.renderSongHandler()
+        // if ( isMuted ) this.el.muted=true;
         if ( !isPause ) this.el.play()
     }
     
@@ -200,6 +220,10 @@ class PlayerInstance {
         // 播放按钮
         this.playBtn = new PlayerBtn('.player-ui__btn--play', {
             'click': this.playAndPauseHandler.bind(this)
+        })
+        //静音按钮
+        this.mutedBtn = new PlayerBtn('.icon-volume', {
+            'click': this.mutedAndOpenHandler.bind(this)
         })
         // 上一曲
         this.prevBtn = new PlayerBtn('.player-ui__btn--prev', {
