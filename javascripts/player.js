@@ -93,12 +93,21 @@ class PlayerInstance {
     }
 
     nextSongHandler () {//处理歌曲的切换(下一首)
-        this.songIndex++;
+        if(this.songIndex==this.songList.length-1) {
+            this.songIndex=0;
+        }else{
+            this.songIndex++;
+        }
         this.renderSongHandler();
         this.el.play();
     }
     prevSongHandler () {//处理歌曲的切换(上一首)
-        this.songIndex++;
+        if(this.songIndex==0) {
+            this.songIndex=this.songList.length-1;
+        }else{
+            this.songIndex--;
+        }
+        
         this.renderSongHandler();
         this.el.play();
     }
