@@ -118,6 +118,8 @@ class PlayerInstance {
         this.loopMode = 0 // 循环模式 0 列表循环 1 随机播放 2 单曲循环
         // 页面中任何的显示不同都应该由数据来控制 MVC
         this.songIndex = 0  // 当前歌曲的索引
+        this.history = [0] //播放记录(默认为初始0)
+        this.historyIndex= 0 //播放记录池索引
         this.el.volume = 0.8 // 音量
     }
 
@@ -149,6 +151,7 @@ class PlayerInstance {
         
         
         this.onowTime.html(new Gp9Util().formatTime(0))// 当前播放时间显示为0
+        // console.log(this.history);
     }
 
     playAndPauseHandler () {// 处理播放和暂停
@@ -165,9 +168,9 @@ class PlayerInstance {
     }
     changeLoopModeHandler(){//处理循环模式切换
         let loopMode = this.loopMode;
-        console.log("当前循环模式： ",loopMode);
+        // console.log("当前循环模式： ",loopMode);
         this.loopMode = loopMode === 2 ? 0 : loopMode + 1;
-        console.log("循环模式已更换为 ： ",this.loopMode);
+        // console.log("循环模式已更换为 ： ",this.loopMode);
         this.renderloopModeBtnWhenChange(this.loopMode);
     }
     
@@ -212,20 +215,19 @@ class PlayerInstance {
         let bigValue = this.songList.length - 1
         let smallValue = 0
         switch ( this.loopMode ) {
-            case 0:   
-                // console.log("case 0 : ",this.songIndex);       
+            case 0:     
                 let limit = style ?  bigValue: smallValue
                 let result = !style ?  bigValue: smallValue
                 this.songIndex = this.songIndex === limit ? result : this.songIndex + (style ? 1 : -1); 
                 break;
             case 1:
                 this.songIndex = Math.floor(Math.random()*4);
-                // console.log("case 1 : ",this.songIndex);
                 break;
             case 2:  //单曲模式，默认不切换songIndex(歌曲索引)
                 break;
             default: break;
         }
+        this.history.push(this.songIndex);
     }
     // 切换歌曲 
     // params style || index
@@ -238,7 +240,18 @@ class PlayerInstance {
         let isMuted= this.el.muted;
         if ( typeof param === 'number' ) {
             this.songIndex = param
-        } else {
+            this.history.push(this.songIndex)
+        }else if(!param){
+            if(this.history.length===1){ 
+                this.songIndex = 0 ;
+                // console.log("songIndex: ",this.songIndex);
+            }else{
+                this.songIndex = this.history[ this.history.length-2 ];
+                // console.log("songIndex: ",this.songIndex);
+                this.history.pop();
+            }
+        } 
+        else {
             this.changeIndexDependLoop(param)
         }
         this.renderSongHandler()
@@ -256,7 +269,7 @@ class PlayerInstance {
         this.mutedBtn = new PlayerBtn('.icon-volume', {
             'click': this.mutedAndOpenHandler.bind(this)
         })
-        // 上一曲(保存上一首的索引，忽视循环模式)
+        // 上一曲(从历史记录池history获取索引，忽视循环模式)
         this.prevBtn = new PlayerBtn('.player-ui__btn--prev', {
             'click': this.changeSongHandler.bind(this, false)
         })
