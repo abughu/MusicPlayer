@@ -163,6 +163,13 @@ class PlayerInstance {
         this.el.muted = mutedState ? false : true // 执行的操作
         this.renderMutedBtnWhenChange(mutedState)
     }
+    changeLoopModeHandler(){//处理循环模式切换
+        let loopMode = this.loopMode;
+        console.log("当前循环模式： ",loopMode);
+        this.loopMode = loopMode === 2 ? 0 : loopMode + 1;
+        console.log("循环模式已更换为 ： ",this.loopMode);
+        this.renderloopModeBtnWhenChange(this.loopMode);
+    }
     
     renderPlayBtnWhenChange (playState) { // 根据播放状态re-render disc
         // icon-play icon-pause
@@ -180,17 +187,42 @@ class PlayerInstance {
         } else {
             this.mutedBtn.$el.removeClass('icon-muted').addClass('icon-volume')
         }
-        // this.oDisc.toggleClass('play')  
+    }
+    renderloopModeBtnWhenChange(){//根据循环模式状态渲染模式按钮
+        /* if ( !this.loopMode ) {
+            this.loopModeBtn.$el.removeClass('icon-volume').addClass('icon-muted')
+        } else {
+            this.mutedBtn.$el.removeClass('icon-muted').addClass('icon-volume')
+        } */
+        switch ( this.loopMode ) {
+            case 0:   
+                this.loopModeBtn.$el.removeClass('icon-single').addClass('icon-loop')
+                break;
+            case 1:
+                this.loopModeBtn.$el.removeClass('icon-loop').addClass('icon-random')
+                break;
+            case 2:
+                this.loopModeBtn.$el.removeClass('icon-random').addClass('icon-single')
+                break;   
+            default: break;
+        }
     }
 
     changeIndexDependLoop (style) { // 根据循环模式切换索引
+        let bigValue = this.songList.length - 1
+        let smallValue = 0
         switch ( this.loopMode ) {
-            case 0: 
-                let bigValue = this.songList.length - 1
-                let smallValue = 0
+            case 0:   
+                // console.log("case 0 : ",this.songIndex);       
                 let limit = style ?  bigValue: smallValue
                 let result = !style ?  bigValue: smallValue
                 this.songIndex = this.songIndex === limit ? result : this.songIndex + (style ? 1 : -1); 
+                break;
+            case 1:
+                this.songIndex = Math.floor(Math.random()*4);
+                // console.log("case 1 : ",this.songIndex);
+                break;
+            case 2:  //单曲模式，默认不切换songIndex(歌曲索引)
                 break;
             default: break;
         }
@@ -204,7 +236,6 @@ class PlayerInstance {
         // 3. 根据换歌前是否播放控制当前是否播放
         let isPause = this.el.paused
         let isMuted= this.el.muted;
-        console.log(isPause,isMuted);
         if ( typeof param === 'number' ) {
             this.songIndex = param
         } else {
@@ -225,13 +256,17 @@ class PlayerInstance {
         this.mutedBtn = new PlayerBtn('.icon-volume', {
             'click': this.mutedAndOpenHandler.bind(this)
         })
-        // 上一曲
+        // 上一曲(保存上一首的索引，忽视循环模式)
         this.prevBtn = new PlayerBtn('.player-ui__btn--prev', {
             'click': this.changeSongHandler.bind(this, false)
         })
-        // 下一曲
+        // 下一曲(根据循环模式来判断索引的改变方式)
         this.nextBtn = new PlayerBtn('.player-ui__btn--next', {
             'click': this.changeSongHandler.bind(this, true)
+        })
+        //循环模式按钮
+        this.loopModeBtn = new PlayerBtn('.player-ui__btn--loop', {
+            'click': this.changeLoopModeHandler.bind(this)
         })
         // 歌曲列表 点击换歌
         this.oList.delegate('li', 'click', (e) => {
